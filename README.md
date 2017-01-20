@@ -1,18 +1,22 @@
+# What This Program Does
+
+This allow you to edit the data on a physical drive(SD card, hard drive, etc.) 
+
 Commands
 --------
 * read: display sector
 
-* write <string>: write string to sector and zero the remaining bytes
+* write &lt;string&gt;: write string to sector and zero the remaining bytes
 
-* select <sector#>: select sector to work with
+* select &lt;sector#&gt;: select sector to work with
 
 * randomize: fill sector with random data
 
 * info: display drive info
 
-* writeo <hex offset> <string>: write string starting at offset
+* writeo &lt;hex offset&gt; &lt;string&gt;: write string starting at offset
 
-* append <hexoffset> <string>: write starting at offset, without zeroing the remaining bytes
+* append &lt;hexoffset&gt; &lt;string&gt;: write starting at offset, without zeroing the remaining bytes
 
 * q: quit progam
 
