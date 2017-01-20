@@ -16,7 +16,7 @@ Commands
 
 * writeo &lt;hex offset&gt; &lt;string&gt;: write string starting at offset
 
-* append &lt;hexoffset&gt; &lt;string&gt;: write starting at offset, without zeroing the remaining bytes
+* append &lt;hex offset&gt; &lt;string&gt;: write starting at offset, without zeroing the remaining bytes
 
 * q: quit progam
 
