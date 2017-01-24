@@ -26,22 +26,6 @@ Arguments
 --------
 w: enable write
 
-mount_drive
------------
-
-```
-possible_drives = [r"\\.\PhysicalDrive1",r"\\.\PhysicalDrive2",r"\\.\PhysicalDrive3"]
-for drive in possible_drives:
-    disk = file(drive,'rb+')
-```
-
-unmount_drive
--------------
-
-```
-disk.close()
-```
-
 # Functions And Their Arguments
 
 * write_to_sector(disk,provided_data='',selected_sector=0,sector_size = 512):
@@ -55,6 +39,26 @@ disk.close()
 * append_command(disk,offset,provided_data,selected_sector=0,sector_size = 512):
 
 * randomize(disk,selected_sector=0,sector_size = 512):
+
+# Drive Selection
+
+Enter a letter(a-z) or a number(0-9) to select a drive. 
+
+Example output:
+
+```
+Caption  Description       Size          VolumeName
+C:       Local Fixed Disk  175935619030  Windows
+D:       Removable Disk    72313890284   USB
+E:       Local Fixed Disk  9412331344    Drive1
+F:       Local Fixed Disk  2828215376    Drive2
+
+Caption             InterfaceType  Name                Size          TotalSectors
+C400-MTFDDAK128MAM  IDE            \\.\PHYSICALDRIVE0  128728396300  250045820
+SDXC Card           USB            \\.\PHYSICALDRIVE1  64729361240   129826405
+
+Drive:
+```
 
 # Example Output
 
