@@ -1,7 +1,29 @@
-import os, sys, monitor_lib
-possible_drives = [r"\\.\PhysicalDrive1",r"\\.\PhysicalDrive2",r"\\.\PhysicalDrive3"]
+import os,sys,monitor_lib,subprocess
+
+def get_cmd_output(cmd):
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return proc.communicate() #out, error
+
+os.system('cls')
+possible_drives_logical = get_cmd_output('wmic logicaldisk get caption')[0].strip('Caption').strip().replace('       \r\r\n','').split(':')[:-1]
+possible_drives_physical = get_cmd_output('wmic diskdrive get name')[0].strip('Name').strip().split()
+print get_cmd_output('wmic logicaldisk get caption,description,size,volumename')[0],
+print get_cmd_output('wmic diskdrive get caption,name,interfaceType,size,TotalSectors')[0],
+
+choice='!'
+while True:
+    if choice.isdigit() and choice in ''.join(possible_drives_physical):
+        drive=possible_drives_physical[int(choice)]
+        break
+    elif choice.upper() in possible_drives_logical:
+        drive = r"\\.\%s:" %choice.upper() #\\.\X:
+        break
+    elif choice=='quit':
+        sys.exit(0)
+    choice = raw_input('Drive:')
+
 selected_sector=0
-command='info'
+command='select 0'
 os.system('cls')
 if len(sys.argv)>1:
     if sys.argv[1]=='w':
@@ -10,44 +32,53 @@ if len(sys.argv)>1:
 else:
     write_enabled=False
     print 'INFO: You are in read-only mode'
-for drive in possible_drives:
-    while True:
-        try:
-            disk = file(drive,'rb+')
-            if command.split()[0]=='read':
-                monitor_lib.read_sector(disk,selected_sector=selected_sector)
-            elif command.split()[0]=='write':
-                if write_enabled:
-                    monitor_lib.write_to_sector(disk,' '.join(command.split()[1:]),selected_sector=selected_sector)
-                else:
-                    print 'ACCESS DENIED: WRITE NOT ENABLED!'
-            elif command.split()[0]=='select':
-                selected_sector=int(command.split()[1])
-            elif command.split()[0]=='randomize':
-                if write_enabled:
-                    monitor_lib.randomize(disk,selected_sector=selected_sector)
-                else:
-                    print 'ACCESS DENIED: WRITE NOT ENABLED!'
-            elif command.split()[0]=='info':
+
+while True:
+    try:
+
+        disk = file(drive,'rb+')
+        if command=='':
+            print 'Invalid Command!'
+
+        elif command.split()[0]=='read':
+            monitor_lib.read_sector(disk,selected_sector=selected_sector)
+        elif command.split()[0]=='write':
+            if write_enabled:
+                monitor_lib.write_to_sector(disk,' '.join(command.split()[1:]),selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='select':
+            selected_sector=int(command.split()[1])
+        elif command.split()[0]=='randomize':
+            if write_enabled:
+                monitor_lib.randomize(disk,selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='info':
+            if choice.isdigit():
                 monitor_lib.get_disk_info(disk,drive,selected_sector=selected_sector)
-            elif command.split()[0]=='q':
-                sys.exit(0)
-            elif command.split()[0]=='writeo':
-                if write_enabled:
-                    monitor_lib.writeo(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
-                else:
-                    print 'ACCESS DENIED: WRITE NOT ENABLED!'
-            elif command.split()[0]=='append':
-                if write_enabled:
-                    monitor_lib.append_command(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
-                else:
-                    print 'ACCESS DENIED: WRITE NOT ENABLED!'
-            elif command.split()[0]=='help':
-                print 'Commands\n--------\nread: display sector\nwrite <string>: write string to sector and zero the remaining bytes'
-                print 'select <sector#>: select sector to work with\nrandomize: fill sector with random data\ninfo: display drive info'
-                print 'writeo <hex offset> <string>: write string starting at offset\nappend <hexoffset> <string>: write starting at offset, without zeroing the remaining bytes'
-                print 'q: quit progam\nhelp: display help menu\nArguments\n--------\nw: enable write'
-            command=raw_input('SECTOR:'+str(selected_sector)+'>')
-            disk.close()
-        except Exception, e:
-            print e
+            else:
+                print 'Drive:',drive
+                print 'Info is for physical drives only!'
+        elif command.split()[0]=='q':
+            sys.exit(0)
+        elif command.split()[0]=='writeo':
+            if write_enabled:
+                monitor_lib.writeo(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='append':
+            if write_enabled:
+                monitor_lib.append_command(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='help':
+            print '\nCommands\n--------\nread: display sector\nwrite <string>: write string to sector and zero the remaining bytes'
+            print 'select <sector#>: select sector to work with\nrandomize: fill sector with random data\ninfo: display drive info'
+            print 'writeo <hex offset> <string>: write string starting at offset\nappend <hexoffset> <string>: write starting at offset, without zeroing the remaining bytes'
+            print 'q: quit progam\nhelp: display help menu\n\nArguments\n--------\nw: enable write\n'
+        command=raw_input('SECTOR:'+str(selected_sector)+'>')
+        disk.close()
+    except Exception, e:
+        print 'Error:',e
+        command=''
