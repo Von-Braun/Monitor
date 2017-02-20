@@ -1,4 +1,4 @@
-import os,sys,monitor_lib,subprocess
+import os,sys,monitor_lib,subprocess,traceback
 
 def get_cmd_output(cmd):
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -44,7 +44,12 @@ while True:
             monitor_lib.read_sector(disk,selected_sector=selected_sector)
         elif command.split()[0]=='write':
             if write_enabled:
-                monitor_lib.write_to_sector(disk,' '.join(command.split()[1:]),selected_sector=selected_sector)
+                monitor_lib.write_to_sector(disk,' '.join(command.split()[2:]),False,command.split()[1],selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='writehex':
+            if write_enabled:
+                monitor_lib.write_to_sector(disk,' '.join(command.split()[2:]),True,command.split()[1],selected_sector=selected_sector)
             else:
                 print 'ACCESS DENIED: WRITE NOT ENABLED!'
         elif command.split()[0]=='select':
@@ -52,6 +57,11 @@ while True:
         elif command.split()[0]=='randomize':
             if write_enabled:
                 monitor_lib.randomize(disk,selected_sector=selected_sector)
+            else:
+                print 'ACCESS DENIED: WRITE NOT ENABLED!'
+        elif command.split()[0]=='clear':
+            if write_enabled:
+                monitor_lib.clear(disk,selected_sector=selected_sector)
             else:
                 print 'ACCESS DENIED: WRITE NOT ENABLED!'
         elif command.split()[0]=='info':
@@ -62,23 +72,14 @@ while True:
                 print 'Info is for physical drives only!'
         elif command.split()[0]=='q':
             sys.exit(0)
-        elif command.split()[0]=='writeo':
-            if write_enabled:
-                monitor_lib.writeo(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
-            else:
-                print 'ACCESS DENIED: WRITE NOT ENABLED!'
-        elif command.split()[0]=='append':
-            if write_enabled:
-                monitor_lib.append_command(disk,command.split()[1],' '.join(command.split()[2:]),selected_sector=selected_sector)
-            else:
-                print 'ACCESS DENIED: WRITE NOT ENABLED!'
         elif command.split()[0]=='help':
-            print '\nCommands\n--------\nread: display sector\nwrite <string>: write string to sector and zero the remaining bytes'
+            print '\nCommands\n--------\nread: display sector\nwrite <offset> <string>: write string to sector and zero the remaining bytes'
             print 'select <sector#>: select sector to work with\nrandomize: fill sector with random data\ninfo: display drive info'
-            print 'writeo <hex offset> <string>: write string starting at offset\nappend <hexoffset> <string>: write starting at offset, without zeroing the remaining bytes'
+            print 'clear: fill sector with zero data\nwritehex <offset> <hex>: write hex to sector and zero the remaining bytes'
             print 'q: quit progam\nhelp: display help menu\n\nArguments\n--------\nw: enable write\n'
         command=raw_input('SECTOR:'+str(selected_sector)+'>')
         disk.close()
     except Exception, e:
         print 'Error:',e
+        traceback.print_exc()
         command=''
