@@ -1,14 +1,10 @@
 from random import randint
+from itertools import izip
 
-def write_to_sector(disk,provided_data='',selected_sector=0,sector_size = 512):
-    data=[]
-    for character in list(provided_data):
-        data.append(character)
-    empty_space=sector_size-len(data)
-    for i in range(0,empty_space):
-        data.append(chr(0))
-    disk.seek(selected_sector*sector_size)
-    disk.write(bytearray(data))
+def pairwise(iterable):
+    "s -> (s0, s1), (s2, s3), (s4, s5), ..."
+    a = iter(iterable)
+    return izip(a, a)
 
 def read_sector(disk,selected_sector=0,sector_size = 512,return_list=False):
     disk.seek(selected_sector*sector_size)
@@ -57,37 +53,33 @@ def get_disk_info(disk,drive,selected_sector=0,sector_size = 512):
             count=count-increment_amount
             increment_amount=increment_amount/10
 
-
-def writeo(disk,offset,provided_data,selected_sector=0,sector_size = 512): #offset = start position
-    hex_list=read_sector(disk,selected_sector,sector_size,return_list=True)
-    actual_offset=int(offset,16)%sector_size
+def write_to_sector(disk,provided_data,data_is_hex=False,offset='0',selected_sector=0,sector_size = 512): #offset = start position
+    hex_list=read_sector(disk,selected_sector,sector_size,return_list=True) #get original data
+    actual_offset=int(offset,16)%sector_size #calculate offset in hex_list
     data=[]
-    for i in hex_list[:actual_offset]:
+    for i in hex_list[:actual_offset]: #add data up until offset
         data.append(chr(int(i,16)))
-    for character in list(provided_data):
-        data.append(character)
-    empty_space=sector_size-len(data)
-    for i in range(0,empty_space):
-        data.append(chr(0))
+    if not data_is_hex:
+        for character in list(provided_data): #add provided_data
+            data.append(character)
+    else:
+        for high_nibble, low_nibble in pairwise(list(provided_data)):
+            data.append((high_nibble+low_nibble).decode("hex"))
+    empty_space=sector_size-len(data) #calculate space remaining in sector
+    for i in hex_list[-empty_space:]: #add preexisting data after offset+provided_data
+        data.append(chr(int(i,16)))
+    data=data[:sector_size] 
     disk.seek(selected_sector*sector_size)
     disk.write(bytearray(data))
 
-def append_command(disk,offset,provided_data,selected_sector=0,sector_size = 512): #offset = start position
-    hex_list=read_sector(disk,selected_sector,sector_size,return_list=True)
-    actual_offset=int(offset,16)%sector_size
-    data=[]
-    for i in hex_list[:actual_offset]:
-        data.append(chr(int(i,16)))
-    for character in list(provided_data):
-        data.append(character)
-    empty_space=sector_size-len(data)
-    for i in hex_list[-empty_space:]:
-        data.append(chr(int(i,16)))
-    disk.seek(selected_sector*sector_size)
-    disk.write(bytearray(data))
+def clear(disk,selected_sector=0,sector_size = 512):
+    empty_string= ['00'.decode("hex")]*sector_size
+    write_to_sector(disk,''.join(empty_string),False,'0',selected_sector,sector_size)
 
 def randomize(disk,selected_sector=0,sector_size = 512):
     random_string=[]
     for i in range(0,sector_size):
         random_string.append(chr(randint(0,255)))
-    write_to_sector(disk,''.join(random_string),selected_sector,sector_size)
+    write_to_sector(disk,''.join(random_string),False,'0',selected_sector,sector_size)
+
+#reduce wear by only writing during a save command - Only needed for testing
