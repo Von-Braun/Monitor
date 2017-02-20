@@ -66,9 +66,9 @@ DRIVE: \\.\PhysicalDrive1
 Sector Count: 125042680
 Byte Count: 64021852160
 
-SECTOR:0>  select 5324342
+SECTOR:0> select 5324342
 
-SECTOR:5324342>  read
+SECTOR:5324342> read
 
 a27c6c00L  01 aa 24 3f 01 5d d5 28  26 c0 f3 35 be f4 85 3b  |..$?.].(&..5...;|
 a27c6c10L  9f e1 0c 37 44 93 46 d5  b5 c7 d3 2a 5e af d9 84  |...7D.F....*^...|
@@ -103,9 +103,11 @@ a27c6dd0L  8e f0 b0 15 77 b9 5b d7  91 97 00 32 4f 77 57 86  |....w.[....2OwW.|
 a27c6de0L  55 8e 29 69 c7 ce 3e aa  f7 56 0f bb d5 c4 ee 84  |U.)i..>..V......|
 a27c6df0L  55 53 ee c3 c1 be e8 32  60 21 1c 4a b6 ff ff ff  |US.....2`!.J....|
 
-SECTOR:5324342> write 0 FFE5
+SECTOR:5324342> write 1 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
-a27c6c00L  FF E5 24 3f 01 5d d5 28  26 c0 f3 35 be f4 85 3b  |..$?.].(&..5...;|
+SECTOR:5324342> read
+
+a27c6c00L  01 FF FF FF FF FF FF FF  FF FF FF FF FF FF FF FF  |................|
 a27c6c10L  9f e1 0c 37 44 93 46 d5  b5 c7 d3 2a 5e af d9 84  |...7D.F....*^...|
 a27c6c20L  a1 64 b3 2a d7 5d 16 56  86 2e 82 4d 2a e5 84 14  |.d.*.].V...M*...|
 a27c6c30L  a6 9c b7 a2 be 66 af fa  98 ed 6c aa f7 78 0a cb  |.....f....l..x..|
